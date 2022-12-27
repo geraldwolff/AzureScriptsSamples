@@ -1,0 +1,153 @@
+﻿ <#
+.NOTES
+
+    THIS CODE-SAMPLE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED 
+
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR 
+
+    FITNESS FOR A PARTICULAR PURPOSE.
+
+    This sample is not supported under any Microsoft standard support program or service. 
+
+    The script is provided AS IS without warranty of any kind. Microsoft further disclaims all
+
+    implied warranties including, without limitation, any implied warranties of merchantability
+
+    or of fitness for a particular purpose. The entire risk arising out of the use or performance
+
+    of the sample and documentation remains with you. In no event shall Microsoft, its authors,
+
+    or anyone else involved in the creation, production, or delivery of the script be liable for 
+
+    any damages whatsoever (including, without limitation, damages for loss of business profits, 
+
+    business interruption, loss of business information, or other pecuniary loss) arising out of 
+
+    the use of or inability to use the sample or documentation, even if Microsoft has been advised 
+
+    of the possibility of such damages, rising out of the use of or inability to use the sample script, 
+
+    even if Microsoft has been advised of the possibility of such damages.
+
+#> 
+ 
+ $DirectoryToCreate = 'C:\temp'
+
+ if (-not (Test-Path -LiteralPath $DirectoryToCreate)) {
+    
+    try {
+        New-Item -Path $DirectoryToCreate -ItemType Directory -ErrorAction Stop | Out-Null #-Force
+    }
+    catch {
+        Write-Error -Message "Unable to create directory '$DirectoryToCreate'. Error was: $_" -ErrorAction Stop
+    }
+    "Successfully created directory '$DirectoryToCreate'."
+
+}
+else {
+    "Directory already existed"
+}
+
+ ######################33
+ ##  Necessary Modules to be imported.
+
+import-module Az.Resources -force 
+ 
+
+ ############
+ ## connect to Azure with authorized credentials 
+ 
+ Connect-AzAccount
+  
+
+
+    $subs = Get-AzSubscription 
+    
+
+
+$rolegroupassignment = ''
+
+foreach($sub in $subs) 
+{
+
+            $subscriptionName = $sub.name
+          
+
+                set-azcontext -subscription $subscriptionname 
+   
+   
+                       $rolegroupassignments = (Get-AzRoleAssignment) 
+                       
+                        foreach($roleassignment in $rolegroupassignments)
+                        {
+                        $groups = ''
+
+                          $rolegroupobj = new-object PSObject 
+                          if($($roleassignment.SigninName) -eq $null)
+                          {
+                            $role = Get-AzRoleAssignment -RoleDefinitionName $($roleassignment.RoleDefinitionName) | Get-AzRoleAssignment  | Select-Object DisplayName -Unique
+                            
+                            $rolename = $($role.DisplayName)
+                          
+                           $rolegroupobj | Add-Member -MemberType NoteProperty -name  User -value "$roleName"
+                           }
+                           Else 
+                           {
+                             $rolegroupobj | Add-Member -MemberType NoteProperty -name  User -value "$($roleassignment.SigninName)"
+                           }
+                           Foreach($groupassigned in ($($rolegroupassignments | where SigninName -match  "$($roleassignment.SigninName)")))
+                           {
+                             [array]$groups += "$($groupassigned.RoleDefinitionName)"
+                           }
+                           $groupmembership = $groups | select-object -Unique 
+                         $rolegroupobj | Add-Member -MemberType NoteProperty -name  Scope -value "$($roleassignment.Scope) "
+                         $rolegroupobj | Add-Member -MemberType NoteProperty -name  GroupMemberOf -value "$groupmembership"  
+
+                           [array]$rolegroupassignment += $rolegroupobj
+
+
+                       }
+}
+
+
+     $CSS = @"
+<Title>User Azure Group membership matrix Report:$(Get-Date -Format 'dd MMMM yyyy' )</Title>
+<Style>
+th {
+       font: bold 11px "Trebuchet MS", Verdana, Arial, Helvetica,
+       sans-serif;
+       color: #FFFFFF;
+       border-right: 1px solid #DC143C;
+       border-bottom: 1px solid #DC143C;
+       border-top: 1px solid #DC143C;
+       letter-spacing: 2px;
+       text-transform: uppercase;
+       text-align: left;
+       padding: 6px 6px 6px 12px;
+       background: #5F9EA0;
+}
+td {
+       font: 11px "Trebuchet MS", Verdana, Arial, Helvetica,
+       sans-serif;
+       border-right: 1px solid #DC143C;
+       border-bottom: 1px solid #DC143C;
+       background: #fff;
+       padding: 6px 6px 6px 12px;
+       color: #6D929B;
+}
+</Style>
+"@
+
+
+
+
+
+(((($rolegroupassignment   | Select  User, Scope, GRoupMemberOf   |`
+  ConvertTo-Html -Head $CSS ).replace('Owner','<font color=red>Owner</font>')).replace('Contributor ','<font color=blue>Contributor </font>')).replace('Administrator', '<font color=cyan>Administrator </font>'))| out-file  "c:\temp\rolemembership.html"
+invoke-item "c:\temp\rolemembership.html"
+
+
+
+
+
+

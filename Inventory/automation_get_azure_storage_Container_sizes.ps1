@@ -1,0 +1,269 @@
+﻿ <#
+.SYNOPSIS  
+ Wrapper script for automation_get_azure_storage_Container_sizes
+.DESCRIPTION  
+ Wrapper script for automation_get_azure_storage_Container_sizesto html report
+.EXAMPLE  
+.\automation_get_azure_storage_Container_sizes.ps1
+Version History  
+v1.0   - Initial Release  
+ 
+
+.NOTES
+
+    THIS CODE-SAMPLE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED 
+
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR 
+
+    FITNESS FOR A PARTICULAR PURPOSE.
+
+    This sample is not supported under any Microsoft standard support program or service. 
+
+    The script is provided AS IS without warranty of any kind. Microsoft further disclaims all
+
+    implied warranties including, without limitation, any implied warranties of merchantability
+
+    or of fitness for a particular purpose. The entire risk arising out of the use or performance
+
+    of the sample and documentation remains with you. In no event shall Microsoft, its authors,
+
+    or anyone else involved in the creation, production, or delivery of the script be liable for 
+
+    any damages whatsoever (including, without limitation, damages for loss of business profits, 
+
+    business interruption, loss of business information, or other pecuniary loss) arising out of 
+
+    the use of or inability to use the sample or documentation, even if Microsoft has been advised 
+
+    of the possibility of such damages, rising out of the use of or inability to use the sample script, 
+
+    even if Microsoft has been advised of the possibility of such damages.
+
+#> 
+
+### uncomment when using for AAzure Automation
+connect-azaccount # -Identity
+
+
+import-module az.storage -force
+
+      $AZStorageContainerlist =''  
+             $subscriptionlist =  Get-AZSubscription |select  name, ID 
+
+    foreach($Subscription  in $subscriptionlist)
+    {
+
+             $SubscriptionName =  $Subscription.name
+             
+             $SubscriptionID =  $Subscription.ID 
+
+            set-AZcontext -SubscriptionName  $SubscriptionName
+
+             write-host "$SubscriptionName" -foregroundcolor yellow
+
+            #Get-Command -Module Azure -Noun *Storage*`
+
+
+             $SubscriptionName 
+             $storageaccounts = Get-AZStorageAccount | select StorageAccountName, context, PrimaryEndpoints,AccountType, ProvisioningState ,PrimaryLocation ,Resourcegroupname ,Tags
+
+
+                foreach($storageaccount in $storageaccounts)
+                { 
+                            $StorageAccountName = $storageaccount.StorageAccountName
+                            $storageaccountrg = $storageaccount.resourcegroupname
+                              
+
+                                 #$stgacct = Get-AZStorageAccount | Format-Table -Property StorageAccountName, Location, AccountType, StorageAccountStatus
+
+                                 Set-AZContext -SubscriptionName $SubscriptionName 
+
+                          #       Set-AZStorageAccount -StorageAccountName $StorageAccountName -ResourceGroupName $storageaccountrg
+ 
+                               $stgkey =  (Get-AZStorageAccountKey -Name $StorageAccountName -ResourceGroupName $storageaccountrg -erroraction silentlycontinue)
+  
+                      
+                               # $stgkey.value
+                                $storageacctkeyprimary = ($stgkey.value ) | select -First 1
+                                $storageacctkeySecondary = ($stgkey.value ) | select -skip 1  
+                                $storageacctkeyStorageAccountName = $StorageAccountName
+ 
+ 
+
+                              $storageaccountendpoints = $storageaccount.PrimaryEndpoints
+                              $storageaccountlocation = $storageaccount.PrimaryLocation
+                              $storageaccount_type =  $storageaccount.AccountType
+                              $storeageaccountstatus = $storageaccount.StatusOfPrimary
+                    
+                               # $ctx = $storageaccount.context
+                                $ctx = New-AZStorageContext -StorageAccountName  $StorageAccountName -StorageAccountKey $storageacctkeyprimary 
+                               $containers = Get-AzStorageContainer  -context $ctx
+
+
+                              # $containers | measure-object | select count
+
+                               foreach($containeritem in $containers)
+                              {
+                                   # Get-AZStorageBlob -Context  $ctx  -Container $containeritem.Name
+
+                                    $containername = $containeritem.name  
+
+                                    #List the snapshots of a blob.
+
+                                    $blobs =   Get-AZStorageBlob –Context $Ctx  -Container $ContainerName  
+
+
+ 
+                                    $blobs | ForEach-Object {$length = $length + $_.Length}
+                                  
+                            
+
+                                        $obj = new-object PSObject
+                                        $obj | add-member -membertype NoteProperty -name "subscriptioname" -value "$SubscriptionName"
+                                        $obj | add-member -membertype NoteProperty -name "storageaccountname" -value "$storageaccountname"
+                                        $obj | add-member -membertype NoteProperty -name "containername" -value "$containername"
+                                        $obj | add-member -membertype NoteProperty -name "blobSize" -Value $length
+
+                                   [array]$AZStorageContainerlist +=     $obj  
+
+ 
+                              }
+
+        }
+
+    }
+
+ $date = $(Get-Date -Format 'dd MMMM yyyy' )
+ 
+    $CSS = @"
+<Title> Azure Storage container sizes Report: $date </Title>
+<Style>
+th {
+	font: bold 11px "Trebuchet MS", Verdana, Arial, Helvetica,
+	sans-serif;
+	color: #FFFFFF;
+	border-right: 1px solid #C1DAD7;
+	border-bottom: 1px solid #C1DAD7;
+	border-top: 1px solid #C1DAD7;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	text-align: left;
+	padding: 6px 6px 6px 12px;
+	background: #5F9EA0;
+}
+td {
+	font: 11px "Trebuchet MS", Verdana, Arial, Helvetica,
+	sans-serif;
+	border-right: 1px solid #C1DAD7;
+	border-bottom: 1px solid #C1DAD7;
+	background: #fff;
+	padding: 6px 6px 6px 12px;
+	color: #6D929B;
+}
+</Style>
+"@
+
+
+ 
+
+ 
+$AZStoragelist_report = ($AZStorageContainerlist | sort-object subscriptioname   | Select  subscriptioname, storageaccountname,containername, blobsize|`   
+ConvertTo-Html -Head $CSS )  | out-file "c:\temp\Azure_storage_account_container_sizes.html" 
+
+invoke-item "c:\temp\Azure_storage_account_container_sizes.html" 
+ 
+
+ 
+ 
+<######### Uncomment and configure to send results to storage account blob 
+
+
+ 
+ $date = $(Get-Date -Format 'dd MMMM yyyy' )
+ 
+########### Prepare for storage account export
+
+$csvresults = $AZStorageContainerlist | sort-object subscriptioname   | Select  subscriptioname, storageaccountname,containername, blobsize
+
+ $resultsfilename = "Container_Sizes$date.csv"
+
+$csvresults  | export-csv $resultsfilename  -NoTypeInformation   
+
+# end vmss data 
+
+
+##### storage subinfo
+
+$Region = "<Location/Region>"
+ $date = Get-Date -Format MMddyyyy
+ $subscriptionselected = '<Subscription>'
+
+
+
+$resourcegroupname = '<resourcegroupname>'
+$subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
+$TenantID = $subscriptioninfo | select tenantid
+$storageaccountname = '<StorageAccountname>'
+$storagecontainer = '<ContainerName>'
+### end storagesub info
+
+set-azcontext -Subscription $($subscriptioninfo.Name)  -Tenant $($TenantID.TenantId)
+
+ 
+
+#BEGIN Create Storage Accounts
+ 
+ 
+ 
+ try
+ {
+     if (!(Get-AzStorageAccount -ResourceGroupName $resourcegroupname -Name $storageaccountname ))
+    {  
+        Write-Host "Storage Account Does Not Exist, Creating Storage Account: $storageAccount Now"
+
+        # b. Provision storage account
+        New-AzStorageAccount -ResourceGroupName $resourcegroupname  -Name $storageaccountname -Location $region -AccessTier Hot -SkuName Standard_LRS -Kind BlobStorage -Tag @{"owner" = "Jerry wolff"; "purpose" = "Az Automation storage write" } -Verbose
+ 
+     
+        Get-AzStorageAccount -Name   $storageaccountname  -ResourceGroupName  $resourcegroupname  -verbose
+     }
+   }
+   Catch
+   {
+         WRITE-DEBUG "Storage Account Aleady Exists, SKipping Creation of $storageAccount"
+   
+   } 
+        $StorageKey = (Get-AzStorageAccountKey -ResourceGroupName $resourcegroupname  –StorageAccountName $storageaccountname).value | select -first 1
+        $destContext = New-azStorageContext  –StorageAccountName $storageaccountname `
+                                        -StorageAccountKey $StorageKey
+
+
+             #Upload user.csv to storage account
+
+        try
+            {
+                  if (!(get-azstoragecontainer -Name $storagecontainer -Context $destContext))
+                     { 
+                         New-azStorageContainer $storagecontainer -Context $destContext
+                        }
+             }
+        catch
+             {
+                Write-Warning " $storagecontainer container already exists" 
+             }
+       
+
+         Set-azStorageBlobContent -Container $storagecontainer -Blob $resultsfile  -File $resultsfilename -Context $destContext
+        
+        
+ 
+ 
+  #>
+
+
+
+
+
+
+
+
