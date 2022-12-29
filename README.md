@@ -1,5 +1,5 @@
 # AzureScriptsSamples
-Collection of Script to generate report or download reports from Azure Using PowerShell
+Collection of Scripts to generate reports or download reports from Azure Using PowerShell
 .NOTES
 
     THIS CODE-SAMPLE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED 
