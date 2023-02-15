@@ -82,26 +82,38 @@ foreach($resource in  $resource_selected)
 {
     
     $newtag = Get-azResource -ResourceName $resource.name -ResourceGroupName $resource.resourcegroupname 
-$settag = Set-azResource -Tag @{ Owner ="$owner"; Purpose="$purpose" ;Team ="$Team" } -ResourceId $newtag.ResourceId -Force 
+ 
+                
+                      
+ 
+                 $settag = Set-azResource -Tag @{ Owner ="$owner"; Purpose="$purpose" ;Team ="$Team" } -ResourceId $newtag.ResourceId -Force -ErrorAction silentlyContinue -ErrorVariable ProcessError
 
- $updatedresource = get-azresource -ResourceId $resource.Id | select Name, Tags, resourcegroupname
-  
+               if($processError)
+                 {
+                     if($processError -like '*VM is not running*')
+                     {
+                         $Tagsvalue =  'resource is not running'
 
-    $Tags = $updatedresource.Tags
+                     }
+                      write-host "Not taggable - $ProcessError" -ForegroundColor Red
+                      $Tagsvalue =  'not taggable'
+                }
+                else
+                {
 
-    IF ($Tags -eq $null)
-    {
-        $tags.Values ='not taggable'
-    
-    } 
+                    $updatedresource = get-azresource -ResourceId $resource.Id | select Name, Tags, resourcegroupname, ID
 
- $Resourceobj = New-Object Psobject
+                   $Tagsvalue = $updatedresource.Tags.Values
+                }
+     
+
+     $Resourceobj = New-Object Psobject
 
     $Resourceobj | Add-Member -MemberType NoteProperty -name Name  -Value $($updatedresource.Name) 
-    $Resourceobj | Add-Member -MemberType NoteProperty -name TAGS  -Value "$($tags.Values)"
+    $Resourceobj | Add-Member -MemberType NoteProperty -name TAGS  -Value "$($Tagsvalue)"
     $Resourceobj | Add-Member -MemberType NoteProperty -name Resourcegroupname  -Value $($updatedresource.ResourceGroupName) 
     $Resourceobj | Add-Member -MemberType NoteProperty -name Subscription -Value $Subscription 
-
+    $Resourceobj | Add-Member -MemberType NoteProperty -name ID -Value  $($updatedresource.id)
     [array]$updatedtags += $Resourceobj 
 } 
 
@@ -148,8 +160,8 @@ td {
  $scope = 'Updated'
  
 
-(($updatedtags | select Name, Tags, resourcegroupname, subscription  | `
-ConvertTo-Html -Head $CSS ).replace('not taggable','<font color=red>Is not tagged or May not be a taggable resource</font>'))      | Out-File c:\temp\Azureresource_tag_report.html
+(($updatedtags | select Name, Tags, resourcegroupname, subscription, ID  | `
+ConvertTo-Html -Head $CSS ).replace('not taggable','<font color=red>not taggable</font>'))      | Out-File c:\temp\Azureresource_tag_report.html
  Invoke-Item c:\temp\Azureresource_tag_report.html
 
 
@@ -165,36 +177,47 @@ ConvertTo-Html -Head $CSS ).replace('not taggable','<font color=red>Is not tagge
  {
  
 
-  $FullListresource = get-azresource -ResourceId $Full_audit_resource.Id | select Name, Tags, resourcegroupname
+  $FullListresource = get-azresource -ResourceId $Full_audit_resource.Id | select *
   
 
     $Tags = $FullListresource.Tags
 
-     IF ($Tags -eq $null)
+     IF ($null -eq $Tags )
     {
-        $tags ='not taggable'
+         $Tagsvalue = 'Not taggable'
     
     } 
+    Else
+    {
+          $Tagsvalue = $($Tags.Values)
+    }
 
  $Resourceobj = New-Object Psobject
 
     $Resourceobj | Add-Member -MemberType NoteProperty -name Name  -Value $($Full_audit_resource.Name) 
-    $Resourceobj | Add-Member -MemberType NoteProperty -name TAGS  -Value "$($tags.Values)"
+    $Resourceobj | Add-Member -MemberType NoteProperty -name TAGS  -Value "$($Tagsvalue)"
     $Resourceobj | Add-Member -MemberType NoteProperty -name Resourcegroupname  -Value $($Full_audit_resource.ResourceGroupName) 
-    $Resourceobj | Add-Member -MemberType NoteProperty -name Subscription -Value $Subscription 
+    $Resourceobj | Add-Member -MemberType NoteProperty -name Subscription -Value $subscription
+    $Resourceobj | Add-Member -MemberType NoteProperty -name SubscriptionID -Value $($FullListresource.SubscriptionId)
+    $Resourceobj | Add-Member -MemberType NoteProperty -name ID -Value $($Full_audit_resource.id)
 
     [array]$FulltagsAudit += $Resourceobj 
 }
 
 
 
-(( $FulltagsAudit | select Name, Tags, resourcegroupname, subscription  | `
-ConvertTo-Html -Head $CSS ).replace('   ','<font color=red>Is not tagged or May not be a taggable resource</font>'))     | Out-File c:\temp\Azureresource_Full_tag_report.html
+(( $FulltagsAudit | select Name, Tags, resourcegroupname, subscription,SubscriptionID,ID  | `
+ConvertTo-Html -Head $CSS ).replace('Not taggable','<font color=red>not taggable</font>'))     | Out-File c:\temp\Azureresource_Full_tag_report.html
  Invoke-Item c:\temp\Azureresource_Full_tag_report.html
 
 
+<#  no color report option
 
+  ( $FulltagsAudit | select Name, Tags, resourcegroupname, subscription,SubscriptionID, ID  | `
+ConvertTo-Html -Head $CSS )   | Out-File c:\temp\Azureresource_Full_tag_reporttest.html
+ Invoke-Item c:\temp\Azureresource_Full_tag_reporttest.html
 
+ #>
 
 
 
