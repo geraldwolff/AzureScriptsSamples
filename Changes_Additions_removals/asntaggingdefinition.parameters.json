@@ -1,0 +1,21 @@
+{
+   "tagName": {
+      "type": "String",
+      "metadata": {
+         "displayName": "Tag Name",
+         "description": "Name of the tag, such as 'environment'"
+      }
+   },
+   "listofallowedtagValues": {
+      "type": "Array",
+      "metadata": {
+        "displayName": "Tag Values",
+        "description": "Value of the tag, such as 'ASN######'"
+      },
+      "allowedValues": [
+        "ASN00001",
+        "ASN00002",
+        "ASN00003"
+      ]
+    }
+}

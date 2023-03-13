@@ -1,0 +1,31 @@
+{
+  "properties": {
+    "displayName": "Enforce ASN Tag Name and Value on Resource Groups",
+    "mode": "All",
+    "description": "Enforces a required ASN tag and its value on resource groups.",
+    "metadata": {
+      "version": "1.0.0",
+      "category": "Tags"
+    },
+    "version": "1.0.0",
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "type",
+            "equals": "Microsoft.Resources/subscriptions/resourceGroups"
+          },
+          {
+            "not": {
+            "field": "[concat('tags[', parameters('tagName'), ']')]",
+            "in": "[parameters('listofallowedtagValues')]"
+            }
+          }
+        ]
+      },
+      "then": {
+        "effect": "deny"
+      }
+    }
+  }
+}
