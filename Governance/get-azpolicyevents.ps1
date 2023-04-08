@@ -8,14 +8,6 @@
  
  Connect-AzAccount
 
- 
-#########################################
-
-##  Get ist of subscriptions that will be read for discovery 
- 
- 
-
-
 
 #########################################
 ##  uncomment this line if anomalies in queries display deprecation messages - This will allow script to continue discovery
@@ -75,8 +67,8 @@
 
                  #$policydefdata = Get-AzPolicyDefinition -Name $($policystate.PolicyDefinitionName)  -ErrorAction SilentlyContinue
 
-                ################### counter for poilcy States
-                Get-AzPolicyEvent -PolicyDefinitionName $($policystate.PolicyDefinitionName) -ErrorAction SilentlyContinue
+                ################### counter for policy States
+            $policyevents =   Get-AzPolicyEvent -PolicyDefinitionName $($policystate.PolicyDefinitionName) -ErrorAction SilentlyContinue
 
                             $i = $i+1
                                     # Determine the completion percentage

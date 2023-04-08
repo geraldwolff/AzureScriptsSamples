@@ -29,89 +29,98 @@
 
     even if Microsoft has been advised of the possibility of such damages.
 
-    Script Name: get_vmskuquotas.ps1
-    Description: Custom script collect Subscription quota counts 
-    NOTE:   Scripts creates resourcegroup, storage account, containers and csv files loaded to storage account
-
 #> 
 
-####### Suppress powershell module changes warning during execution 
 
-  Set-Item Env:\SuppressAzurePowerShellBreakingChangeWarnings 'true'
-
+######################################
 
 
+param(
 
-try
+[String]$source = $(throw "westus")
+ 
+)
+
+$ErrorActionPreference = "silentlycontinue"
+
+Switch ("$source")
 {
-    "Logging in to Azure..."
-    Connect-AzAccount # -Environment AzureUSGovernment    #-Identity
+    "" {$source ="westus"}
+    $null {$source = "westus"}
+ 
 }
-catch {
-    Write-Error -Message $_.Exception
-    throw $_.Exception
-}
-$ErrorActionPreference = 'silentlyContinue'
 
 
- $subscriptions = Get-azSubscription  
+   Set-Item Env:\SuppressAzurePowerShellBreakingChangeWarnings 'true'
 
-set-azcontext -Subscription $subscription
+#############
 
- $quotalist = ''
 
- foreach($sub in $subscriptions)
- {
-    Set-azcontext -Subscription $sub.Name
+connect-azaccount  -identity
 
-    $locations = Get-AzLocation
 
-    foreach($loc in $locations)
-       {
+#install-module -name  azspeedtest -allowclobber
+import-module azspeedtest
+import-module az -force
 
-          #  write-host " $($sub.Subscription.Name) - Quota usage - $LOCATION" -FOREGROUNDCOLOR RED
 
-      $quota =      get-azvmusage -location $loc.DisplayName  
+$regions = Get-azlocation | select location
 
-      foreach($quotaitem in $quota)
-      {
-            
-            $quotaobj = new-object PSobject 
 
-            
-            $quotaobj | Add-Member -MemberType NoteProperty -Name  Name -Value $($quotaitem.name).LocalizedValue
-            $quotaobj | Add-Member -MemberType NoteProperty -Name  Currentvalue -Value $($quotaitem.Currentvalue)
-            $quotaobj | Add-Member -MemberType NoteProperty -Name  Limit -Value $($quotaitem.Limit)
-            $quotaobj | Add-Member -MemberType NoteProperty -Name  Unit -Value $($quotaitem.Unit)
-            $quotaobj | Add-Member -MemberType NoteProperty -Name  Location -Value $($loc.DisplayName)
-            $quotaobj | Add-Member -MemberType NoteProperty -Name  Subscription -Value $($sub.name)
-                       
-             [array]$quotalist += $quotaobj
-         }
-    }
+$speedresults = $null
+$date = $(Get-Date -Format 'dd MMMM yyyy')
 
- }
+foreach($region in $regions)
+{
+    $sourceregion = "$source"
+    $($region.location)
+        $results = test-azregionlatency -Region "$sourceregion", "$($region.location)"  -Iterations 50  
 
-#$quotalist | Where-object {$_.currentvalue -ne 0 } | select name, Currentvalue, Limit, Unit, Location, subscription | ft -auto
+        $results 
+
 
  
- $resultsfilename = "vmquotausage.csv"
 
- $quotalist| Where-object {$_.currentvalue -ne 0 } | select name, Currentvalue, Limit, Unit, Location , subscription | export-csv $resultsfilename  -NoTypeInformation  
+        foreach($result in $results)
+        {
+            if("$($result.region)" -notmatch "$sourceregion")
+            {
+                $speedobj = new-object PSObject 
 
-##### storage subinfo
+                $speedobj | Add-Member -MemberType NoteProperty -Name SourceComputername -value "$($result.computername)"
+                $speedobj | Add-Member -MemberType NoteProperty -Name SourceRegion -value "$sourceregion"
+                $speedobj | Add-Member -MemberType NoteProperty -Name Minimum -value "$($result.Minimum)"
+                $speedobj | Add-Member -MemberType NoteProperty -Name Average -value "$($result.Average)"
+                $speedobj | Add-Member -MemberType NoteProperty -Name Maximum -value "$($result.Maximum)"
+                $speedobj | Add-Member -MemberType NoteProperty -Name TotalTime -value "$($result.TotalTime)"
+                $speedobj | Add-Member -MemberType NoteProperty -Name Region -value "$($result.Region)"
+                $speedobj | Add-Member -MemberType NoteProperty -Name Record_date -value "$date"
+
+                [array]$speedresults += $speedobj
+            }
+        }
+}
+
+
+
+ $resultsfilename = "networkspeedperformance.csv"
+
+ $speedresults |  select SourceComputername, SourceRegion, Minimum, Average, Maximum,TotalTime ,Region , Record_date  | export-csv $resultsfilename  -NoTypeInformation  
+
+
+  ##### storage subinfo
 
 $Region = "West US"
 
- $subscriptionselected = 'HPC GBB Americas'
+ $subscriptionselected = 'MSUSHPC2022'
 
 
 
 $resourcegroupname = 'wolffautorg'
 $subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
 $TenantID = $subscriptioninfo | Select-Object tenantid
-$storageaccountname = 'wolffgovernancesa'
-$storagecontainer = 'vmquotausage'
+$storageaccountname = 'wolffautomationsa'
+$storagecontainer = 'networkspeedperformance'
 ### end storagesub info
 
 set-azcontext -Subscription $($subscriptioninfo.Name)  -Tenant $($TenantID.TenantId)

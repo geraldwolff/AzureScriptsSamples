@@ -165,20 +165,26 @@ UsageStart          | export-csv $resultsfilename  -NoTypeInformation
 
 ##### storage subinfo
 
-#connect-azaccount 
- 
+##### storage subinfo
 
-$Region =  "West US"
+$Region = "<location>"
+#####  Subscription name if results storage accounts are in a separate subscription
 
- $subscriptionselected = 'wolffentpSub'
+### If results storage account is in a separate tenant 
+#Connect-azaccount   # for storage account tenant and subscription context verification
+
+ $subscriptionselected = '<results subscription>'
 
 
 
-$resourcegroupname = 'wolffautomationrg'
+$resourcegroupname = '<resourcegroupname>'
 $subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
 $TenantID = $subscriptioninfo | Select-Object tenantid
-$storageaccountname = 'wolffautosa'
-$storagecontainer = 'wpicorpbilling'
+$storageaccountname = '<storaceaccountcontainer>'
+ 
+### end storagesub info
+
+set-azcontext -Subscription $($subscriptioninfo.Name)  -Tenant $($TenantID.TenantId)
 
 
 ### end storagesub info

@@ -30,34 +30,22 @@
 
     even if Microsoft has been advised of the possibility of such damages.
 
-    Scriptname: get_azure_policy_states_export_to_Json.ps1
+    Scriptname: get_azure_policy_states_export_to_storgeAccount.ps1
     Description:  Script to collect all Azure Policies assigned to scubscriptions 
                   results show Assignment subscription and compliance state
-                  Script will generate report in HTML and CSV
-                  Script will export all Policy definitions that have been assigned to a subscription
+                  Script will generate report in   CSV to a storage account
+          
 
     Purpose:  Audit of Assigned policies in a tenant
 
+    Note: in order for process counter to show it must be in the first tab of PowerShell ISE
+
 #> 
+
+
    Set-Item Env:\SuppressAzurePowerShellBreakingChangeWarnings 'true'
 
- $DirectoryToCreate = 'C:\temp'
-
- if (-not (Test-Path -LiteralPath $DirectoryToCreate)) {
-    
-    try {
-        New-Item -Path $DirectoryToCreate -ItemType Directory -ErrorAction Stop | Out-Null #-Force
-    }
-    catch {
-        Write-Error -Message "Unable to create directory '$DirectoryToCreate'. Error was: $_" -ErrorAction Stop
-    }
-    "Successfully created directory '$DirectoryToCreate'."
-
-}
-else {
-    "Directory already existed"
-}
-
+ 
  ######################33
  ##  Necessary Modules to be imported.
 
@@ -68,7 +56,7 @@ else {
  ############
  ## connect to Azure with authorized credentials 
  
- Connect-AzAccount
+ Connect-AzAccount -identity
 
  
 #########################################
@@ -101,6 +89,21 @@ else {
  foreach($Subscription in  $subs)
     {
 
+            ## Progress counter 
+
+                        $i = 0
+              
+
+                             $a = $a+1
+
+                    # Determine the completion percentage
+                    $SubCompleted = ($a/$subs.count) * 100
+                    $Subactivity = "Subscriptions - Processing Iteration " + ($a + 1);
+         
+                         Write-Progress -Activity " $Subactivity " -Status "Progress:" -PercentComplete $SubCompleted
+
+                    ###### end progrss counter for subscriptions
+
                              $SubscriptionName =  $Subscription.name
 
                              
@@ -118,10 +121,28 @@ else {
           foreach($policystate in $policystates) 
           {
                 #Get-AzPolicySetDefinition -SubscriptionId 
+
+
+                 $policydefdata = Get-AzPolicyDefinition -Name $($policystate.PolicyDefinitionName)  -ErrorAction SilentlyContinue
+
+################### counter for poilcy States
+Get-AzPolicyEvent -PolicyDefinitionName $($policystate.PolicyDefinitionName)
+
+            $i = $i+1
+                    # Determine the completion percentage
+                    $Completed = ($i/$policystates.count) * 100
+                    $activity = "policystates- Processing Iteration " + ($i + 1);
+         
+                 Write-Progress -Activity " $activity " -Status "Progress:" -PercentComplete $Completed  
+
+
+#################### end progress counter for policy states 
+
+
            
             $policystateobj = new-object PSObject 
 
-              $policystateobj | Add-Member -MemberType NoteProperty -name  SubscriptionId    -value   $($policystate.SubscriptionId)
+              $policystateobj | Add-Member -MemberType NoteProperty -name   SubscriptionId    -value   $($policystate.SubscriptionId)
               $policystateobj | Add-Member -MemberType NoteProperty -name  ResourceType     -value      $($policystate.ResourceType)
               $policystateobj | Add-Member -MemberType NoteProperty -name  ResourceTags     -value      $($policystate.ResourceTags)   
               $policystateobj | Add-Member -MemberType NoteProperty -name  ResourceLocation     -value    $($policystate.ResourceLocation)
@@ -150,6 +171,9 @@ else {
               $policystateobj | Add-Member -MemberType NoteProperty -name  PolicyAssignmentOwner     -value   $($policystate.PolicyAssignmentOwner)
               $policystateobj | Add-Member -MemberType NoteProperty -name  PolicyAssignmentName     -value     $($policystate.PolicyAssignmentName)
               $policystateobj | Add-Member -MemberType NoteProperty -name  PolicyAssignmentId     -value     $($policystate.PolicyAssignmentId) 
+              $policystateobj | Add-Member -MemberType NoteProperty -name  PolicyDescription     -value     $($policydefdata.properties.Description) 
+              $policystateobj | Add-Member -MemberType NoteProperty -name  PolicyCategory     -value     $($policydefdata.properties.Metadata.Category) 
+              $policystateobj | Add-Member -MemberType NoteProperty -name  PolicyDisplayName     -value     $($policydefdata.properties.DisplayName) 
 
 
               [array]$policystateresults += $policystateobj
@@ -164,88 +188,11 @@ else {
     }
 
 
-    #########################################
-## CSS to format output in tabular format
 
-$CSS = @"
-<Title>Policystate Report:$(Get-Date -Format 'dd MMMM yyyy')</Title>
-<Header>
- 
-"<B>Company Confidential</B> <br><I>Report generated from {3} on $env:computername {0} by {1}\{2} as a scheduled task</I><br><br>Please contact $contact with any questions "$(Get-Date -displayhint date)",$env:userdomain,$env:username
- </Header>
+ $resultsfilename = "policystateresults.csv"
 
- <Style>
-th {
-	font: bold 11px "Trebuchet MS", Verdana, Arial, Helvetica,
-	sans-serif;
-	color: #FFFFFF;
-	border-right: 1px solid #C1DAD7;
-	border-bottom: 1px solid #C1DAD7;
-	border-top: 1px solid #C1DAD7;
-	letter-spacing: 2px;
-	text-transform: uppercase;
-	text-align: left;
-	padding: 6px 6px 6px 12px;
-	background: #5F9EA0;
-
-}
-td {
-	font: 11px "Trebuchet MS", Verdana, Arial, Helvetica,
-	sans-serif;
-	border-right: 1px solid #C1DAD7;
-	border-bottom: 1px solid #C1DAD7;
-	background: #fff;
-	padding: 6px 6px 6px 12px;
-	color: #6D929B;
-}
-</Style>
-"@
-
-
-
-
-
- 
-#########################################
-## Section to create output into HTML tabular format in C:\temp  Change the path if that is not the desired location or it was not previously created
-## No logic added intentionally to create a directory.
-
-(($policystateresults | sort-object SubscriptionId, ResourceGroup | Select SubscriptionId,`
-ResourceGroup,`
-ResourceType,`
-ResourceTags,`
-ResourceLocation,`
-IsCompliant,`
-ComplianceState,`
-EffectiveParameters,`
-ResourceId,`
-PolicySetDefinitionVersion,`
-PolicySetDefinitionParameters,`
-PolicySetDefinitionOwner,`
-PolicySetDefinitionName,`
-PolicySetDefinitionId,`
-PolicySetDefinitionCategory,`
-PolicyEvaluationDetails,`
-PolicyDefinitionVersion,`
-PolicyDefinitionReferenceId,`
-PolicyDefinitionName,`
-PolicyDefinitionId,`
-PolicyDefinitionGroupNames,`
-PolicyDefinitionCategory,`
-PolicyDefinitionAction,`
-PolicyAssignmentVersion,`
-PolicyAssignmentScope,`
-PolicyAssignmentParameters,`
-PolicyAssignmentOwner,`
-PolicyAssignmentName,`
-PolicyAssignmentId |`
-ConvertTo-Html -Head $CSS).replace('NonCompliant','<font color=red>NonCompliant</font>').replace('False','<font color=red>False</font>'))   | Out-File "c:\temp\az_policystate_information_report.html"
-
-
-#########################################
-## Lauch resulting html file
-
- Invoke-Item "c:\temp\az_policystate_information_report.html"
+$policyStatusresults  | export-csv $resultsfilename  -NoTypeInformation   
+  
 
  $policystateresults | sort-object SubscriptionId, ResourceGroup | Select SubscriptionId,`
 ResourceGroup,`
@@ -275,32 +222,80 @@ PolicyAssignmentScope,`
 PolicyAssignmentParameters,`
 PolicyAssignmentOwner,`
 PolicyAssignmentName,`
-PolicyAssignmentId  | export-csv "c:\temp\policystate.csv" -NoTypeInformation
-
-
-##################  Export definitions assigned to json 
- 
- 
-$policystateresults | sort-object PolicyDefinitionName | select -unique PolicyDefinitionName  | foreach-object {
+PolicyAssignmentId ,`
+PolicyDescription ,`
+PolicyCategory, `
+PolicyDisplayName|`
+   export-csv $resultsfilename  -NoTypeInformation   
 
   
-        
-        $policydef = Get-AzPolicyDefinition  -Name  $($_.PolicyDefinitionName) -ErrorAction SilentlyContinue
+
+##### storage subinfo
+
+$Region = "West US"
+
+ $subscriptionselected = 'MSUSHPC2022'
+
+
+
+$resourcegroupname = 'wolffautorg'
+$subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
+$TenantID = $subscriptioninfo | Select-Object tenantid
+$storageaccountname = 'wolffautomationsa'
+$storagecontainer = 'PolicyStates'
+### end storagesub info
+
+set-azcontext -Subscription $($subscriptioninfo.Name)  -Tenant $($TenantID.TenantId)
+
+
+#BEGIN Create Storage Accounts
+ 
+ 
+ 
+ try
+ {
+     if (!(Get-AzStorageAccount -ResourceGroupName $resourcegroupname -Name $storageaccountname ))
+    {  
+        Write-Host "Storage Account Does Not Exist, Creating Storage Account: $storageAccount Now"
+
+        # b. Provision storage account
+        New-AzStorageAccount -ResourceGroupName $resourcegroupname  -Name $storageaccountname -Location $region -AccessTier Hot -SkuName Standard_LRS -Kind BlobStorage -Tag @{"owner" = "Jerry wolff"; "purpose" = "Az Automation storage write" } -Verbose
+ 
+     
+        Get-AzStorageAccount -Name   $storageaccountname  -ResourceGroupName  $resourcegroupname  -verbose
+     }
+   }
+   Catch
+   {
+         WRITE-DEBUG "Storage Account Aleady Exists, SKipping Creation of $storageAccount"
    
-            $policydefinitionfilename = (($($policydef.Properties.DisplayName)) -replace('\[','') -replace(']','')) -replace(' ','_') -replace (':','') 
+   } 
+        $StorageKey = (Get-AzStorageAccountKey -ResourceGroupName $resourcegroupname  –StorageAccountName $storageaccountname).value | select -first 1
+        $destContext = New-azStorageContext  –StorageAccountName $storageaccountname `
+                                        -StorageAccountKey $StorageKey
 
 
-            write-host -ForegroundColor green "c:\temp\$($policydefinitionfilename)_policy.json"
+             #Upload user.csv to storage account
 
+        try
+            {
+                  if (!(get-azstoragecontainer -Name $storagecontainer -Context $destContext))
+                     { 
+                         New-azStorageContainer $storagecontainer -Context $destContext
+                        }
+             }
+        catch
+             {
+                Write-Warning " $storagecontainer container already exists" 
+             }
+       
 
-              $policydef  | ConvertTo-Json -Depth 10 | out-file "c:\temp\$($policydefinitionfilename)_policy.json"  
+         Set-azStorageBlobContent -Container $storagecontainer -Blob $resultsfile  -File $resultsfilename -Context $destContext
         
-    
-        
+ 
 
 
 
-}
 
 
 

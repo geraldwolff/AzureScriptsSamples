@@ -154,7 +154,7 @@ Get-AzPolicyEvent -PolicyDefinitionName $($policystate.PolicyDefinitionName)
 
 #################### end progress counter for policy states 
 
-
+    
            
             $policystateobj = new-object PSObject 
 
@@ -341,7 +341,7 @@ $policystateresults | sort-object PolicyDefinitionName | select -unique PolicyDe
 
 ################ end progrss counter 
 
-
+<##
         
         $policydef = Get-AzPolicyDefinition  -Name  $($_.PolicyDefinitionName) -ErrorAction SilentlyContinue
    
@@ -354,7 +354,7 @@ $policystateresults | sort-object PolicyDefinitionName | select -unique PolicyDe
               $policydef  | ConvertTo-Json -Depth 10 | out-file "c:\temp\$($policydefinitionfilename)_policy.json"  
         
     
-        
+        #>
 
 
 

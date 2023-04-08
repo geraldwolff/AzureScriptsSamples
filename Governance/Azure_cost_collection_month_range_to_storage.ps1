@@ -40,38 +40,60 @@ $tenantlist = get-aztenant | Select-Object -property *
  
 $costreport = ''
 
-
-
 $today = get-date -format 'yyyyMM'
 $today
-$month = 1
+$numberofmonths = 5
+
+ $date = ((Get-Date).AddMonths(-$numberofmonths) )
+ 
+$datestart = get-date($today) -Format 'yyyyMM'
+ 
+
+$invoicerpt = ''
+ 
 
 foreach($tenant in $tenantlist)
 {
 
- 
+    set-azcontext -Tenant $($tenant.Id) 
 
-                $billing_account = Get-AzBillingAccount  -IncludeAddress
+$month = $numberofmonths 
 
- 
-                $billingmonth = ((Get-Date).AddMonths(-$month)) 
-                $billingdate = get-date($billingmonth) -Format 'yyyyMM'
+    do
+    {
+          $billing_account = Get-AzBillingAccount  -IncludeAddress
+        
+        $billingmonth = ((Get-Date).AddMonths(-$month)) 
+        $billingdate = get-date($billingmonth ) -Format 'yyyyMM'
 
-                $billingdate
+        $billingdate
 
                 ####### collect pretaxcost per subscription
-
- 
+              
                   $costalls =  Get-AzConsumptionUsageDetail -BillingPeriodName $billingdate  -IncludeAdditionalProperties   
 
-
+            $a =0
 
                         $costfields = $costalls | select-object *
 
                 foreach($costield in $costfields)
                 {
+                     $a = $a+1
+
+                    # Determine the completion percentage
+                    $ResourcesCompleted = ($a/$costfields.count) * 100
+                    $Resourceactivity = "costs  - Processing Iteration " + ($a + 1);
+
                     $costobj = new-object PSObject 
 
+                     $costield.Tags.GetEnumerator() | ForEach-Object {
+
+               #    Write-Output "$($_.key)   = $($_.Value)" 
+                   $costtags = "$($_.key)   = $($_.Value)" 
+ 
+                  # $costobj | add-member -membertype Noteproperty -name $($_.key) -value $($_.value)
+
+                   }
 
                 $costobj | add-member -membertype noteproperty -name AccountName           -value $($costield.AccountName)
                 $costobj | add-member -membertype noteproperty -name AdditionalInfo        -value $($costield.AdditionalInfo)
@@ -97,7 +119,7 @@ foreach($tenant in $tenantlist)
                 $costobj | add-member -membertype noteproperty -name Product               -value $($costield.Product)
                 $costobj | add-member -membertype noteproperty -name SubscriptionGuid      -value $($costield.SubscriptionGuid)
                 $costobj | add-member -membertype noteproperty -name SubscriptionName      -value $($costield.SubscriptionName)
-                $costobj | add-member -membertype noteproperty -name Tags                  -value $($costield.Tags)
+                $costobj | add-member -membertype noteproperty -name Tags                  -value $costtags
                 $costobj | add-member -membertype noteproperty -name Type                  -value $($costield.Type)
                 $costobj | add-member -membertype noteproperty -name UsageEnd              -value $($costield.UsageEnd)
                 $costobj | add-member -membertype noteproperty -name UsageQuantity         -value $($costield.UsageQuantity)
@@ -109,12 +131,45 @@ foreach($tenant in $tenantlist)
 
 
                     }
+            $month = $month -1
 
-
+        }until ($month -eq  0)
 
  
+
+        
+
 }
                            
+     set-azcontext -Tenant $($tenant.Id) 
+
+       $invoices =  Get-AzBillingInvoice  | select -Property *
+                     $invoice
+
+        foreach ($invoice in $invoices)
+        {
+           $Subscriptionname = get-azsubscription -SubscriptionId $($invoice.SubscriptionId)  -TenantId $($tenantlist.Id) | select name
+
+                $Invoiceobj = new-object PSObject
+
+                        $Invoiceobj | Add-Member -MemberType NoteProperty -Name Name -value $($invoice.name)
+                        $Invoiceobj | Add-Member -MemberType NoteProperty -Name InvoiceDate -value $($invoice.InvoiceDate)
+                        $Invoiceobj | Add-Member -MemberType NoteProperty -Name InvoicePeriodStartDate -value $($invoice.InvoicePeriodStartDate)
+                        $Invoiceobj | Add-Member -MemberType NoteProperty -Name InvoicePeriodEndDate -value $($invoice.InvoicePeriodEndDate)
+                        $Invoiceobj | Add-Member -MemberType NoteProperty -Name Status -value $($invoice.Status)
+                        $Invoiceobj | Add-Member -MemberType NoteProperty -Name SubscriptionId -value $($invoice.SubscriptionId)
+                        $Invoiceobj | Add-Member -MemberType NoteProperty -Name Subscriptionname -value $($Subscriptionname.Name)
+                        $Invoiceobj | Add-Member -MemberType NoteProperty -Name subtotal -value $($invoice.SubTotal)
+                        $Invoiceobj | Add-Member -MemberType NoteProperty -Name AmountDue -value $($invoice.AmountDue).Value
+                        $Invoiceobj | Add-Member -MemberType NoteProperty -Name BilledAmount -value $($invoice.BilledAmount).Value
+                        $Invoiceobj | Add-Member -MemberType NoteProperty -Name TaxAmount -value $($invoice.TaxAmount).Value
+                        $Invoiceobj | Add-Member -MemberType NoteProperty -Name DueDate -value $($invoice.DueDate)                        
+                        
+                                            
+                        [array]$invoicerpt +=  $Invoiceobj 
+        }
+  
+
  
 
 #$costreport
@@ -122,7 +177,7 @@ foreach($tenant in $tenantlist)
 
  $resultsfilename = "AzureBillingCosts.csv"
 
-
+ $resultsfilename2 = "invoices.csv"
  
 
 
@@ -160,12 +215,12 @@ UsageStart          | export-csv $resultsfilename  -NoTypeInformation
  
  
  
- 
+$invoicerpt|  Select name, InvoiceDate, InvoicePeriodStartDate, InvoicePeriodEndDate, Status, SubscriptionId,Subscriptionname,subtotal,AmountDue,BilledAmount,TaxAmount, DueDate| export-csv $resultsfilename2  -NoTypeInformation 
 
 
 ##### storage subinfo
 
-#connect-azaccount 
+connect-azaccount 
  
 
 $Region =  "West US"
@@ -230,5 +285,21 @@ set-azcontext -Subscription $($subscriptioninfo.Name)  -Tenant $($TenantID.Tenan
        
 
          Set-azStorageBlobContent -Container $storagecontainer -Blob $resultsfilename  -File $resultsfilename -Context $destContext -Force
+
+
+$storageaccountname = 'wolffautosa'
+$storagecontainer = 'invoices'
+       try
+            {
+                  if (!(get-azstoragecontainer -Name $storagecontainer -Context $destContext))
+                     { 
+                         New-azStorageContainer $storagecontainer -Context $destContext
+                        }
+             }
+        catch
+             {
+                Write-Warning " $storagecontainer container already exists" 
+             }
+       
  
- 
+          Set-azStorageBlobContent -Container $storagecontainer -Blob $resultsfilename2  -File $resultsfilename2 -Context $destContext -Force

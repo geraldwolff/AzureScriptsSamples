@@ -121,7 +121,7 @@ else {
            
             $policystateobj = new-object PSObject 
 
-              $policystateobj | Add-Member -MemberType NoteProperty -name  SubscriptionId    -value   $($policystate.SubscriptionId)
+              $policystateobj | Add-Member -MemberType NoteProperty -name   SubscriptionId    -value   $($policystate.SubscriptionId)
               $policystateobj | Add-Member -MemberType NoteProperty -name  ResourceType     -value      $($policystate.ResourceType)
               $policystateobj | Add-Member -MemberType NoteProperty -name  ResourceTags     -value      $($policystate.ResourceTags)   
               $policystateobj | Add-Member -MemberType NoteProperty -name  ResourceLocation     -value    $($policystate.ResourceLocation)

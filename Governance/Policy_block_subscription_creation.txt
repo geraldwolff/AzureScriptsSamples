@@ -1,0 +1,20 @@
+﻿{
+    "if": {
+        "allOf": [
+            {
+                "field": "type",
+                "equals": "Microsoft.Subscription/subscriptions"
+            },
+            {
+                "field": "operationName",
+                "equals": "Microsoft.Subscription/subscriptions/write"
+            }
+        ]
+    },
+    "then": {
+        "effect": "deny"
+    }
+}
+
+
+

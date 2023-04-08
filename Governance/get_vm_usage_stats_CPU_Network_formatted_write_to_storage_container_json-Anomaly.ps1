@@ -247,7 +247,7 @@ $csvresults  | select-object  timestamp,cpu  | export-csv c:\temp\cpuanomanlydat
 
 $Region = "<Location/Regions>"
 
- $subscriptionselected = 'Suncription'
+ $subscriptionselected = '<Subscription>'
 
 
 
