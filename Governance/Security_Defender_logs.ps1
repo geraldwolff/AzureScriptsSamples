@@ -101,16 +101,16 @@ $defCldresults | export-csv $resultsfilename2  -NoTypeInformation
 
 ##### storage subinfo
 
-$Region = "West US"
+$Region = "<location>"
 
- $subscriptionselected = 'MSUSHPC2022'
+ $subscriptionselected = '<Subscription>'
 
 
 
-$resourcegroupname = 'wolffautorg'
+$resourcegroupname = '<resourcegroup>'
 $subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
 $TenantID = $subscriptioninfo | Select-Object tenantid
-$storageaccountname = 'wolffautomationsa'
+$storageaccountname = '<Storageaccount>'
 $storagecontainer = 'defenderforcloudalerts'
 ### end storagesub info
 

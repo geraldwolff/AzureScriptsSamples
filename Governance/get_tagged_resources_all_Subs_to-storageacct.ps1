@@ -120,16 +120,16 @@ $resourcedata
 
 ##### storage subinfo
 
-$Region =  "West US"
+$Region =  "<location>"
 
- $subscriptionselected = 'msushpc2022'
+ $subscriptionselected = '<subscriptionname>'
 
 
 
-$resourcegroupname = 'wolffautorg'
+$resourcegroupname = '<resourcegroup>'
 $subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
 $TenantID = $subscriptioninfo | Select-Object tenantid
-$storageaccountname = 'wolffgovernancesa'
+$storageaccountname = '<storageaccounname>'
 $storagecontainer = 'automationresults'
 
 

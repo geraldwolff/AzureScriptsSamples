@@ -301,16 +301,16 @@ catch {
 }
 
 
-$Region =  "West US"
+$Region =  "<location>"
 
- $subscriptionselected = 'HPC GBB Americas'
+ $subscriptionselected = '<Subscriptionname>'
 
 
 
-$resourcegroupname = 'wolffautorg'
+$resourcegroupname = '<Resourcegroupname>'
 $subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
 $TenantID = $subscriptioninfo | Select-Object tenantid
-$storageaccountname = 'wolffgovernancesa'
+$storageaccountname = '<Storageaccountname>'
 $storagecontainer = 'advisorrecommendations'
 
 
@@ -368,7 +368,7 @@ set-azcontext -Subscription $($subscriptioninfo.Name)  -Tenant $($TenantID.Tenan
 
 ################################################
 
-$storageaccountname = 'wolffgovernancesa'
+$storageaccountname = '<storageaccountname>'
 $storagecontainer = 'usagesonsumptiondetails'
 
 

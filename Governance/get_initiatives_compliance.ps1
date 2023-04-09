@@ -131,16 +131,16 @@ PolicyAssignmentVersion | export-csv $resultsfilename1  -NoTypeInformation
 
 ##### storage subinfo
 
-$Region =  "West US"
+$Region =  "<Location>"
 
- $subscriptionselected = 'WolffMSsub'
+ $subscriptionselected = '<Subscriptionname>'
 
 
 
-$resourcegroupname = 'wpiautomationrg'
+$resourcegroupname = '<Resourcegroupname>'
 $subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
 $TenantID = $subscriptioninfo | Select-Object tenantid
-$storageaccountname = 'wpiautimationstoragesa'
+$storageaccountname = '<Storageaccountname>'
 $storagecontainer = 'policyinitivescompliance'
 
 

@@ -158,7 +158,7 @@ ConvertTo-Html -Head $CSS ).replace('Server is not running or not reachable','<f
 
  
  
- $smtpserver = "smarthost.corp.bittitan.local" 
+ $smtpserver = "smarthost" 
  
  function Send_report
 {

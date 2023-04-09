@@ -201,7 +201,7 @@ $alertresults | select AlertDisplayName,StartTimeUtc,CompromisedEntity, Descript
 
 ##### storage subinfo
 
-$Region = "West US"
+$Region = "<Location>"
 
  $subscriptionselected = '<subscription>'
 

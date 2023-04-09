@@ -103,14 +103,14 @@ set-azcontext -Subscription $subscription
 
 $Region = "West US"
 
- $subscriptionselected = 'HPC GBB Americas'
+ $subscriptionselected = '<Subscription>'
 
 
 
-$resourcegroupname = 'wolffautorg'
+$resourcegroupname = '>resourcegroupname>'
 $subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
 $TenantID = $subscriptioninfo | Select-Object tenantid
-$storageaccountname = 'wolffgovernancesa'
+$storageaccountname = '<storageaccountname>'
 $storagecontainer = 'vmquotausage'
 ### end storagesub info
 

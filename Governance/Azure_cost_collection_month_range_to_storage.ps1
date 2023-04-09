@@ -223,17 +223,17 @@ $invoicerpt|  Select name, InvoiceDate, InvoicePeriodStartDate, InvoicePeriodEnd
 connect-azaccount 
  
 
-$Region =  "West US"
+$Region =  "<Location>"
 
- $subscriptionselected = 'wolffentpSub'
+ $subscriptionselected = '<Subscrptionname>'
 
 
 
-$resourcegroupname = 'wolffautomationrg'
+$resourcegroupname = '<Resourcegroupname>'
 $subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
 $TenantID = $subscriptioninfo | Select-Object tenantid
-$storageaccountname = 'wolffautosa'
-$storagecontainer = 'wpicorpbilling'
+$storageaccountname = '<Storageaccountname>'
+$storagecontainer = 'billing'
 
 
 ### end storagesub info

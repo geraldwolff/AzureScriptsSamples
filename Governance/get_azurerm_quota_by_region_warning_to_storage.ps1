@@ -205,16 +205,16 @@ connect-azaccount
 
    ##### storage subinfo
 
-$Region = "West US"
+$Region = "<Location>"
 
- $subscriptionselected = 'HPC GBB Americas'
+ $subscriptionselected = '<Subscriptionaname>'
 
 
 
-$resourcegroupname = 'wolffautorg'
+$resourcegroupname = '<Resourcegroupname>'
 $subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
 $TenantID = $subscriptioninfo | Select-Object tenantid
-$storageaccountname = 'wolffautomationsa'
+$storageaccountname = '<Storageacocuntname>'
  
 ### end storagesub info
 

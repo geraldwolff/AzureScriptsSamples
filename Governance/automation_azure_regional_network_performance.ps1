@@ -110,16 +110,16 @@ foreach($region in $regions)
 
   ##### storage subinfo
 
-$Region = "West US"
+$Region = "<Location>"
 
- $subscriptionselected = 'MSUSHPC2022'
+ $subscriptionselected = '<Subscriptionname>'
 
 
 
-$resourcegroupname = 'wolffautorg'
+$resourcegroupname = '<Resourcegroupname>'
 $subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
 $TenantID = $subscriptioninfo | Select-Object tenantid
-$storageaccountname = 'wolffautomationsa'
+$storageaccountname = '<Storageaccountname>'
 $storagecontainer = 'networkspeedperformance'
 ### end storagesub info
 

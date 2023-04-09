@@ -168,17 +168,17 @@ UsageStart          | export-csv $resultsfilename  -NoTypeInformation
 #connect-azaccount 
  
 
-$Region =  "West US"
+$Region =  "<location>"
 
- $subscriptionselected = 'wolffentpSub'
+ $subscriptionselected = '<Subscription>'
 
 
 
-$resourcegroupname = 'wolffautomationrg'
+$resourcegroupname = '<Resourcegroupname>'
 $subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
 $TenantID = $subscriptioninfo | Select-Object tenantid
-$storageaccountname = 'wolffautosa'
-$storagecontainer = 'wpicorpbilling'
+$storageaccountname = '<Storageaccountname>'
+$storagecontainer = 'billing'
 
 
 ### end storagesub info
