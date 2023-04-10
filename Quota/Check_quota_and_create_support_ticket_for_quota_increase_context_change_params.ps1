@@ -1,10 +1,10 @@
 ﻿<#
  
 .SYNOPSIS  
-    script for Azure to check quota limit for sufficient allocation available to deploy Azure resources and request and quota limit increase
+    script for Azure to check quota limit for sufficient allocation available to deploy Azure resources
 
 .DESCRIPTION  
-   script for Azure to check quota limit for sufficient allocation available to deploy Azure resources and request and quota limit increase
+   script for Azure to check quota limit for sufficient allocation available to deploy Azure resources
 
 Script: Check_quota_and_create_support_ticket_for_quota_increase_context_change_params.ps1
 
@@ -73,8 +73,11 @@ v1.0   - Initial Release
 
  Connect-AzAccount
 
+        import-module az.capacity -Force -ErrorAction SilentlyContinue
+        import-module  az.quota -Force -ErrorAction SilentlyContinue
 
          sl 'C:\Users\jerrywolff\OneDrive - Microsoft\Documents\azure\PS1\Quota'
+
           Set-Item Env:\SuppressAzurePowerShellBreakingChangeWarnings 'true'
 
 
@@ -100,35 +103,46 @@ Get-AzResourceProvider -ListAvailable | where ProviderNamespace -eq 'microsoft.q
 Get-AzResourceProvider -ListAvailable | where ProviderNamespace -eq 'microsoft.quota'
 
 
-
+   $region =   get-azlocation | where-object {$_.location -eq "$Location" }
+ 
 
 ############################   Get region/Location for request
  
+    If( $($region.Location) -eq $null )
+    {
+            write-host "$Location was not found  Please check spelling and or use the location name ex: 'centralus' instead of 'Central US' " -ForegroundColor Red -BackgroundColor white
 
-            $regionlist = get-azlocation  | where location -eq $Location
-            
+            $validregions = get-azlocation | select Location 
 
-########################  Get Sku Family 
-#$skuname = 'standardFFamily'
-    $regionquotausage =    Get-AzVmUsage –Location $($regionlist.location)   -ErrorAction SilentlyContinue
+            Write-host " Valid region/location names are: $($validregions.location)   "   -ForegroundColor Red -BackgroundColor white
+            exit
 
-if(!($($regionquotausage.name.value) | where-object {$_ -eq "$skuname"}) )
-{
-        Write-Warning " $skuname was not found or is not properly named Please try one of the following " 
-        write-host "$($regionquotausage.name.value)" -ForegroundColor DarkRed -BackgroundColor white  
-        exit
- }
-  else{
+         }
+         Else
+         {
+
+        ########################  Get Sku Family 
+        #$skuname = 'standardFFamily'
+            $regionquotausage =    Get-AzVmUsage –Location $Location   -ErrorAction SilentlyContinue
+
+        if(!($($regionquotausage.name.value) | where-object {$_ -eq "$skuname"}) )
+        {
+                Write-Warning " $skuname was not found or is not properly named Please try one of the following " 
+                write-host "$($regionquotausage.name.value)" -ForegroundColor DarkRed -BackgroundColor white  
+                exit
+         }
+          else{
    
  
-         $regionquotaselected = $($regionquotausage.name.value)  | Where-Object {$_ -eq "$skuname"}
-        write-host " $($regionquotaselected.name.Value)" -ForegroundColor Green
-  }
+                 $regionquotaselected = $($regionquotausage.name.value)  | Where-Object {$_ -eq "$skuname"}
+                write-host " $($regionquotaselected.name.Value)" -ForegroundColor Green
+          }
+}
   
   ################  Get current quota value 
 
   
-$quota = get-azquota -Scope  "subscriptions/$($subscriptionselected.id)/providers/Microsoft.compute/locations/$($regionlist.Location)" -ResourceName   "$regionquotaselected"
+$quota = get-azquota -Scope  "subscriptions/$($subscriptionselected.id)/providers/Microsoft.compute/locations/$location" -ResourceName   "$regionquotaselected"
 
 write-host "Your current quota limit is $($quota.limit.value) for   $regionquotaselected " -BackgroundColor yellow -ForegroundColor Blue
    #$quota
