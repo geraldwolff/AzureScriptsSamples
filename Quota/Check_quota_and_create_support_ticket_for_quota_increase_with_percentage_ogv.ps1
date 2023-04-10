@@ -41,7 +41,7 @@
 #> 
 
 ####### Suppress powershell module changes warning during execution 
-Connect-AzAccount
+$context = Connect-AzAccount
 
 
 # install-module az.quota -allowclobber 
@@ -153,9 +153,10 @@ $Severity = "minimal" #Minimal, Moderate, Critical, HighestCriticalImpact
 
  
 ####################
- 
+ $context = get-azcontext 
 $owner = $($context.account) -split('@')
  
+$ownername = ($owner[0]).split('.')
 
 $email = $($context.account)
 $AdditionalEmail = $($context.account)
@@ -168,7 +169,7 @@ $ContactFirstName = ($($ownername) -split (' '))[0]
 $ContactLastName =  ($($ownername) -split (' '))[-1]
 $TimeZone = "$tz"
 $Language = "$locallanguage"
-$Country = "$origincountry"
+$Country = "USA"
 $PrimaryEmail = "$email"
 $AdditionalEmail = "$email"
 
@@ -246,7 +247,7 @@ Write-Output "$($Usage.Name.LocalizedValue): You have consumed Percentage: $($US
         PreferredContactMethod = Email `
         PrimaryEmailAddress = $PrimaryEmail " -ForegroundColor green -BackgroundColor black
 
-    <#  Uncomment to actually submit a ticket ##################
+    #  Uncomment to actually submit a ticket ##################
 
     New-AzSupportTicket `
         -Name "$TicketName" `
@@ -256,9 +257,9 @@ Write-Output "$($Usage.Name.LocalizedValue): You have consumed Percentage: $($US
         -ProblemClassificationId "/providers/Microsoft.Support/services/$ServiceNameGUID/problemClassifications/$ProblemClassificationGUID" `
         -QuotaTicketDetail @{QuotaChangeRequestVersion = "1.0" ; QuotaChangeRequests = (@{Region = "$Location"; Payload = "{`"VMFamily`":`"$VMFamily `",`
         `"NewLimit`":$NewLimit}"})} -CustomerContactDetail @{FirstName = "$ContactFirstName" ; LastName = "$ContactLastName" ; PreferredTimeZone = "$TimeZone" `
-        ; PreferredSupportLanguage = "$Language" ; Country = "$Country" ; PreferredContactMethod = "Email" ; PrimaryEmailAddress = "$PrimaryEmail" } 
+        ; PreferredSupportLanguage = "$Language" ; Country = "$Country" ; PreferredContactMethod = "Email" ; PrimaryEmailAddress = "$PrimaryEmail" } -AsJob
         
-    #>
+    #
 
     }
     else
