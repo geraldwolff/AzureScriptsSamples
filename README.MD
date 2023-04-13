@@ -1,4 +1,4 @@
-ReadMe
+# ReadMe
 	Scripts Collection
 	This repository contains a collection of scripts that can be used to manage and monitor Azure  tenants, subscription and resources. 
 	The scripts are organized into different categories such as AzurePolicy, Consumption, CostOptimization, Governance, Inventory, Misc, Monitoring, O365_M365, and Quota.
