@@ -1,0 +1,39 @@
+﻿{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "hostpoolName": {
+            "value": "wolffgovHostpool"
+        },
+        "hostpoolFriendlyName": {
+            "value": "wolffgov hostpool"
+        },
+        "appgroupName": {
+            "value": "wolffgovApps"
+        },
+        "appgroupNameFriendlyName": {
+            "value": "Apps with a lot of sand"
+        },
+        "workspaceName": {
+            "value": "wolffgov"
+        },
+        "workspaceNameFriendlyName":{
+            "value": "A nice sunny workspace"
+        },
+        "applicationgrouptype": {
+            "value": "Desktop"
+        },
+        "preferredAppGroupType": {
+            "value": "Desktop"
+        },
+        "avdlocation": {
+            "value": "USGov Arizona"
+        },
+        "hostPoolType": {
+            "value": "Pooled"
+        },
+        "loadBalancerType": {
+            "value": "BreadthFirst"
+        }
+    }
+}
