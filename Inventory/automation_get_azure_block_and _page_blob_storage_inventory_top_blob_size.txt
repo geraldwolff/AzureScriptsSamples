@@ -223,7 +223,7 @@ $csvresults  | export-csv $resultsfilename  -NoTypeInformation
 
 $Region = "West US"
  $date = Get-Date -Format MMddyyyy
- $subscriptionselected = 'MSUSHPC2022'
+ $subscriptionselected = 'Subscription'
 
 
 

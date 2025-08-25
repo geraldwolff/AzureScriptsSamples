@@ -64,7 +64,11 @@ else {
  ######################33
  ##  Necessary Modules to be imported.
 
+<<<<<<< HEAD
  
+=======
+ Import-Module Microsoft.Graph.Security
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 
 Install-Module -Name Az.ResourceGraph
 # Get a list of commands for the imported Az.ResourceGraph module
@@ -127,6 +131,10 @@ $date = get-date -Format ddMMyyyy
 
 
 $alerts = Get-AzSecurityAlert  
+<<<<<<< HEAD
+=======
+#$alerts = Get-MgSecurityAlert
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 $j = 0
 
         Foreach($alert in $alerts)
@@ -203,6 +211,7 @@ $alertresults | select AlertDisplayName,StartTimeUtc,CompromisedEntity, Descript
 
 $Region = "West US"
 
+<<<<<<< HEAD
  $subscriptionselected = '<subscription>'
 
 
@@ -211,6 +220,16 @@ $resourcegroupname = '<Resourcegroup>'
 $subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
 $TenantID = $subscriptioninfo | Select-Object tenantid
 $storageaccountname = '<StorageAccount>'
+=======
+ $subscriptionselected = 'Subscription'
+
+
+
+$resourcegroupname = 'wolffautomationrg'
+$subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
+$TenantID = $subscriptioninfo | Select-Object tenantid
+$storageaccountname = 'wolffautosa'
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 $storagecontainer = 'alerts'
 ### end storagesub info
 
@@ -259,7 +278,11 @@ set-azcontext -Subscription $($subscriptioninfo.Name)  -Tenant $($TenantID.Tenan
              }
        
 
+<<<<<<< HEAD
          Set-azStorageBlobContent -Container $storagecontainer -Blob $alertresultsfilename  -File $alertresultsfilename -Context $destContext
+=======
+         Set-azStorageBlobContent -Container $storagecontainer -Blob $alertresultsfilename  -File $alertresultsfilename -Context $destContext -force
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
         
  
 

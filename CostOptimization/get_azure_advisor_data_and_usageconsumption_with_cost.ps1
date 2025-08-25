@@ -313,10 +313,17 @@ $Region = "<location>"
 
 
 
+<<<<<<< HEAD
 $resourcegroupname = '<resourcegroupname>'
 $subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
 $TenantID = $subscriptioninfo | Select-Object tenantid
 $storageaccountname = '<storaceaccountcontainer>'
+=======
+$resourcegroupname = 'wolffautomationrg'
+$subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
+$TenantID = $subscriptioninfo | Select-Object tenantid
+$storageaccountname = 'savingsrecommendations'
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
  
 ### end storagesub info
 
@@ -377,8 +384,13 @@ set-azcontext -Subscription $($subscriptioninfo.Name)  -Tenant $($TenantID.Tenan
 
 ################################################
 
+<<<<<<< HEAD
 $storageaccountname = 'wolffgovernancesa'
 $storagecontainer = 'usagesonsumptiondetails'
+=======
+$storageaccountname = 'consumption'
+$storagecontainer = 'usageconsumptiondetails'
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 
 
 ### end storagesub info

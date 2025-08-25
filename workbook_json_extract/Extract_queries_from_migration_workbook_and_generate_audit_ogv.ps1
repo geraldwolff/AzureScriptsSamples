@@ -44,6 +44,12 @@ v1.0   - Initial Release
 
 #> 
 
+<<<<<<< HEAD
+=======
+install-module -Name az.resourcegraph -AllowClobber
+
+ import-module az.resourcegraph 
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 
  
 $subscriptions = get-azsubscription  

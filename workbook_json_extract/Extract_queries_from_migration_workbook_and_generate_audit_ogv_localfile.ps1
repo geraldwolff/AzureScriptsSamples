@@ -43,6 +43,12 @@ v1.0   - Initial Release
     even if Microsoft has been advised of the possibility of such damages.
 
 #> 
+<<<<<<< HEAD
+=======
+install-module -Name az.resourcegraph -AllowClobber
+
+ import-module az.resourcegraph 
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 
 
  $querylist = ''

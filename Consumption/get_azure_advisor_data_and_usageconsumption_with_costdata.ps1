@@ -35,7 +35,12 @@ foreach($sub in $subs)
 
          Set-Azcontext -Subscription $subname   
 
+<<<<<<< HEAD
  
+=======
+ Get-AzAccessToken -TenantId $sub.TenantId |Out-Null
+
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 $advisorRecommendations = Get-AzAdvisorRecommendation -SubscriptionId $sub.Id 
 #$advisorRecommendations #   | Export-Csv -Path C:\Recommendations.csv
 
@@ -129,7 +134,11 @@ $advisorRecommendations = Get-AzAdvisorRecommendation -SubscriptionId $sub.Id
 
      
 
+<<<<<<< HEAD
             $Subscriptionconsumptiondetails = Get-AzConsumptionUsageDetail -Expand MeterDetails -erroraction "silentlycontinue"
+=======
+            $Subscriptionconsumptiondetails = Get-AzConsumptionUsageDetail -Expand MeterDetails -StartDate $startDate -EndDate $endDate -erroraction "silentlycontinue"
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 
             foreach($Subscriptionconsumptiondetail in $Subscriptionconsumptiondetails)
             {
@@ -282,11 +291,16 @@ $savingsPlans | Format-Table -AutoSize
  $savingsplans | gm 
 
  #>
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
  ##### storage subinfo
 
 $Region =  "West US"
 
+<<<<<<< HEAD
  $subscriptionselected = 'HPC GBB Americas'
 
 
@@ -295,6 +309,16 @@ $resourcegroupname = 'wolffautorg'
 $subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
 $TenantID = $subscriptioninfo | Select-Object tenantid
 $storageaccountname = 'wolffgovernancesa'
+=======
+ $subscriptionselected = 'Subscription'
+
+
+
+$resourcegroupname = 'wolffautomationrg'
+$subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
+$TenantID = $subscriptioninfo | Select-Object tenantid
+$storageaccountname = 'wolffautosa'
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 $storagecontainer = 'advisorrecommendations'
 
 
@@ -352,7 +376,11 @@ set-azcontext -Subscription $($subscriptioninfo.Name)  -Tenant $($TenantID.Tenan
 
 ################################################
 
+<<<<<<< HEAD
 $storageaccountname = 'wolffgovernancesa'
+=======
+$storageaccountname = 'wolffautosa'
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 $storagecontainer = 'usagesonsumptiondetails'
 
 

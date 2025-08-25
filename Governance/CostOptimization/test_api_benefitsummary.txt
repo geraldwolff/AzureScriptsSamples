@@ -1,0 +1,160 @@
+﻿  Set-Item Env:\SuppressAzurePowerShellBreakingChangeWarnings 'true'
+  
+import-module -Name az.billing -force -ErrorAction SilentlyContinue
+
+import-module -Name az.advisor -force -ErrorAction SilentlyContinue
+ import-module -name Az.Reservations -force  -ErrorAction SilentlyContinue
+   
+                 $null = connect-AzAccount # -id
+
+
+
+# FUNCTIONS
+# Build out the body for the GET / PUT request via REST API
+
+function BuildBody
+(
+    [parameter(mandatory=$True)]
+    [string]$method
+)
+{
+    $BuildBody = @{
+    Headers = @{
+        Authorization = "Bearer $($token.token)"
+        'Content-Type' = 'application/json'
+    }
+    Method = $Method
+    UseBasicParsing = $true
+    }
+    $BuildBody
+}  
+ 
+
+
+
+
+###################################################################
+
+# Function used to build numbers in selection tables for menus
+function Add-IndexNumberToArray (
+    [Parameter(Mandatory=$True)]
+    [array]$array
+    )
+{
+    for($i=0; $i -lt $array.Count; $i++) 
+    { 
+        Add-Member -InputObject $array[$i] -Name "#" -Value ($i+1) -MemberType NoteProperty 
+    }
+    $array
+}
+
+
+##################################################################################################
+
+ 
+
+$usageresponse = ''
+$costreport = ''
+$response = ''
+$token = ''
+$today = get-date -format 'yyyyMM'
+$today
+
+$month = 1  
+$numberofmonths = 5
+
+ $date = ((Get-Date).AddMonths(-$numberofmonths) )
+ 
+$datestart = get-date($date) -Format 'yyyyMM'     
+         
+
+
+###############################################################################
+
+    $subscriptions = get-azsubscription
+      
+   foreach($subcription in $subscriptions)
+
+  { 
+  
+ 
+  
+         Write-Host "Authenticating to Azure..." -ForegroundColor Cyan
+            try
+            {
+                $AzureLogin = Get-AzSubscription 
+                $currentContext = Get-AzContext
+                $token = Get-AzAccessToken -TenantId $($subscription.TenantId)
+                if($Token.ExpiresOn -lt $(get-date))
+                {
+                    "Logging you out due to cached token is expired for REST AUTH.  Re-run script"
+                    #$null = Disconnect-AzAccount        
+                } 
+             
+                
+ 
+            }
+            catch
+            {
+
+                $AzureLogin = Get-AzSubscription  
+                $currentContext = Get-AzContext
+                $token = Get-AzAccessToken -TenantId $($subscription.TenantId)
+             
+                   
+ 
+            }
+
+                $Start = (Get-Date).AddDays(-7) | Get-Date -Hour 0 -Minute 0 -Second 0 | Get-Date -Format "yyyy-MM-ddThh:mm:ssZ"
+    
+                $End = (Get-Date).AddDays(-1) | Get-Date -Hour 23 -Minute 59 -Second 59 | Get-Date -Format "yyyy-MM-ddThh:mm:ssZ"
+    
+                $body = BuildBody GET
+
+          
+        Set-AzContext -Subscription $subcription.Name 
+ 
+
+           $tenantId = "$($subscription.TenantId)"
+          # write-output "$token ***********"
+ 
+         $billingScope = "$($subcription.id)"
+         $billingScope
+        $billingaccount = (get-azbillingaccount).Id
+        $billingaccount
+  
+  
+  
+        # Set the request URI
+ 
+ $requesturi =  "https://management.azure.com$billingaccount/providers/Microsoft.CostManagement/benefitUtilizationSummaries?api-version=2023-03-01"
+ 
+
+        # Send the request to the API  Recommendations collection  
+
+
+        $response = Invoke-RestMethod -Uri $requestUri -Headers ($body.Headers)  -Method GET -ErrorAction silentlycontinue
+
+
+        # Output the response
+         $($response.value).properties | export-csv $resultsfilename1 -NoTypeInformation -Append 
+
+  $response
+
+  ########################  Usage collection 
+
+
+              $usagerequesturi=  "https://management.azure.com/subscriptions/$billingScope/providers/Microsoft.Consumption/usageDetails?api-version=2018-03-31&$expand=properties/additionalProperties"
+
+
+
+             $usageresponse = Invoke-RestMethod -Uri $usagerequesturi -Headers  ($body.Headers) -Method GET -ErrorAction silentlycontinue
+
+
+
+             $($usageresponse.value).properties | export-csv $resultsfilename -NoTypeInformation  
+
+
+  
+  }
+ 

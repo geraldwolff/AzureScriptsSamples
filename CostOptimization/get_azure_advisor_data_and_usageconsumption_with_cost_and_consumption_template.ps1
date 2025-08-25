@@ -82,7 +82,11 @@ $advisorRecommendations = Get-AzAdvisorRecommendation -SubscriptionId $sub.Id
     
      
 
+<<<<<<< HEAD
     $recommendationamount =Get-AzAdvisorRecommendation -resourceid $($recommendation.Id) | Select-Object -ExpandProperty ExtendedProperty | select *
+=======
+    $recommendationamount = Get-AzAdvisorRecommendation -resourceid $($recommendation.Id) | Select-Object -ExpandProperty ExtendedProperty | select *
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
     
     $($recommendationamount.Properties.CostSavings).amount
 
@@ -368,7 +372,11 @@ set-azcontext -Subscription $($subscriptioninfo.Name)  -Tenant $($TenantID.Tenan
 ################################################
 
 $storageaccountname = '<storageaccountname>'
+<<<<<<< HEAD
 $storagecontainer = 'usagesonsumptiondetails'
+=======
+$storagecontainer = 'usageconsumptiondetails'
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 
 
 ### end storagesub info

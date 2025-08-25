@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿Invoke-WebRequest -Uri https://aka.ms/downloadazcopy-v10-windows -OutFile azcopy.msi
 
 
@@ -19,3 +20,26 @@ $NewPath= $OldPath + ’;’ + $AddedLocation
 
 
 
+=======
+﻿Invoke-WebRequest -Uri https://aka.ms/downloadazcopy-v10-windows -OutFile azcopy.msi
+
+
+Start-Process msiexec.exe -Wait -ArgumentList '/I azcopy.msi /quiet'
+
+
+
+
+
+ Clear-Host
+$AddedLocation ="C:\Program Files (x86)\Microsoft SDKs\Azure\AzCopy"
+$Reg = "Registry::HKLM\System\CurrentControlSet\Control\Session Manager\Environment"
+$OldPath = (Get-ItemProperty -Path "$Reg" -Name PATH).Path
+$NewPath= $OldPath + ’;’ + $AddedLocation
+ Set-ItemProperty -Path "$Reg" -Name PATH –Value $NewPath
+ $env:path = $NewPath
+
+
+
+
+
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c

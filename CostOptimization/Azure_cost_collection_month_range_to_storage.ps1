@@ -225,7 +225,11 @@ connect-azaccount
 
 $Region =  "West US"
 
+<<<<<<< HEAD
  $subscriptionselected = 'wolffentpSub'
+=======
+ $subscriptionselected = 'subscription'
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 
 
 
@@ -233,7 +237,11 @@ $resourcegroupname = 'wolffautomationrg'
 $subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
 $TenantID = $subscriptioninfo | Select-Object tenantid
 $storageaccountname = 'wolffautosa'
+<<<<<<< HEAD
 $storagecontainer = 'wpicorpbilling'
+=======
+$storagecontainer = 'corpbilling'
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 
 
 ### end storagesub info

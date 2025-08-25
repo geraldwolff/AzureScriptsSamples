@@ -90,19 +90,28 @@
 
  $resultsfilename1 = "defenderforcloudAssessments.csv"
 
+<<<<<<< HEAD
 $defCldAssresults | export-csv $resultsfilename1  -NoTypeInformation   
+=======
+$defCldAssresults  | select ID, Type, Name, Status, Resourcedetails | export-csv $resultsfilename1  -NoTypeInformation   
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
   
 
   
  $resultsfilename2 = "defenderforcloudresults.csv"
 
+<<<<<<< HEAD
 $defCldresults | export-csv $resultsfilename2  -NoTypeInformation   
+=======
+$defCldresults | select AlertDisplayName, Severity, ProductComponentName, RemediationSteps | export-csv $resultsfilename2  -NoTypeInformation   
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 
 
 ##### storage subinfo
 
 $Region = "West US"
 
+<<<<<<< HEAD
  $subscriptionselected = '<Subscription>'
 
 
@@ -112,6 +121,17 @@ $subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected
 $TenantID = $subscriptioninfo | Select-Object tenantid
 $storageaccountname = '<Storageaccount>'
 $storagecontainer = 'defenderforcloudalerts'
+=======
+ $subscriptionselected = 'Subscription'
+
+
+
+$resourcegroupname = 'wolffautomationrg'
+$subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
+$TenantID = $subscriptioninfo | Select-Object tenantid
+$storageaccountname = 'wolffautosa'
+$storagecontainer = 'defenderforcloudassessments'
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 ### end storagesub info
 
 set-azcontext -Subscription $($subscriptioninfo.Name)  -Tenant $($TenantID.TenantId)
@@ -159,9 +179,58 @@ set-azcontext -Subscription $($subscriptioninfo.Name)  -Tenant $($TenantID.Tenan
              }
        
 
+<<<<<<< HEAD
          Set-azStorageBlobContent -Container $storagecontainer -Blob $resultsfile  -File $resultsfilename1 -Context $destContext
         
           Set-azStorageBlobContent -Container $storagecontainer -Blob $resultsfilename2  -File $resultsfilename2 -Context $destContext
+=======
+         Set-azStorageBlobContent -Container $storagecontainer -Blob $resultsfile  -File $resultsfilename1 -Context $destContext -Force
+
+##############################################
+
+         $storagecontainer = 'defenderforcloudalerts'
+
+ try
+ {
+     if (!(Get-AzStorageAccount -ResourceGroupName $resourcegroupname -Name $storageaccountname ))
+    {  
+        Write-Host "Storage Account Does Not Exist, Creating Storage Account: $storageAccount Now"
+
+        # b. Provision storage account
+        New-AzStorageAccount -ResourceGroupName $resourcegroupname  -Name $storageaccountname -Location $region -AccessTier Hot -SkuName Standard_LRS -Kind BlobStorage -Tag @{"owner" = "Jerry wolff"; "purpose" = "Az Automation storage write" } -Verbose
+ 
+     
+        Get-AzStorageAccount -Name   $storageaccountname  -ResourceGroupName  $resourcegroupname  -verbose
+     }
+   }
+   Catch
+   {
+         WRITE-DEBUG "Storage Account Aleady Exists, SKipping Creation of $storageAccount"
+   
+   } 
+        $StorageKey = (Get-AzStorageAccountKey -ResourceGroupName $resourcegroupname  –StorageAccountName $storageaccountname).value | select -first 1
+        $destContext = New-azStorageContext  –StorageAccountName $storageaccountname `
+                                        -StorageAccountKey $StorageKey
+
+
+             #Upload user.csv to storage account
+
+        try
+            {
+                  if (!(get-azstoragecontainer -Name $storagecontainer -Context $destContext))
+                     { 
+                         New-azStorageContainer $storagecontainer -Context $destContext
+                        }
+             }
+        catch
+             {
+                Write-Warning " $storagecontainer container already exists" 
+             }
+       
+
+        
+          Set-azStorageBlobContent -Container $storagecontainer -Blob $resultsfilename2  -File $resultsfilename2 -Context $destContext -Force
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 
 
 

@@ -161,7 +161,11 @@ PolicyAssignmentVersion | export-csv $resultsfilename1  -NoTypeInformation
 
 $Region =  "West US"
 
+<<<<<<< HEAD
  $subscriptionselected = 'WolffMSsub'
+=======
+ $subscriptionselected = 'subscription'
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 
 
 

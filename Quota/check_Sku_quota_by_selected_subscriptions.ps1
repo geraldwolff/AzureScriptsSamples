@@ -188,7 +188,87 @@ $used_skus_only | Out-File "c:\temp\Region_used_skus.html"
 
 
 
+<<<<<<< HEAD
 
+=======
+ 
+#######################################################################
+
+$Region = "West US"
+
+ $subscriptionselected = 'wolffentpsub'
+
+
+
+
+
+ $resultsfilename = 'vmquota_hw_skus.csv'
+
+
+ $skulist | select name ,tier,capacityMin, capacityMax, scaletype, elasticMaximum, elasticScalingAllowed ,Subscriptionname, SubscriptionID,Appserviceplan, location `
+ | export-csv $resultsfilename 
+
+
+
+
+$resourcegroupname = 'wolffautomationrg'
+$subscriptioninfo = get-azsubscription -SubscriptionName $subscriptionselected 
+$TenantID = $subscriptioninfo | Select-Object tenantid
+$storageaccountname = 'wolffautosa'
+$storagecontainer = 'vmquotausage'
+### end storagesub info
+
+set-azcontext -Subscription $($subscriptioninfo.Name)  -Tenant $($TenantID.TenantId)
+
+
+#BEGIN Create Storage Accounts
+ 
+ 
+ 
+ try
+ {
+     if (!(Get-AzStorageAccount -ResourceGroupName $resourcegroupname -Name $storageaccountname ))
+    {  
+        Write-Host "Storage Account Does Not Exist, Creating Storage Account: $storageAccount Now"
+
+        # b. Provision storage account
+        New-AzStorageAccount -ResourceGroupName $resourcegroupname  -Name $storageaccountname -Location $region -AccessTier Hot -SkuName Standard_LRS -Kind BlobStorage -Tag @{"owner" = "Jerry wolff"; "purpose" = "Az Automation storage write" } -Verbose
+ 
+     
+        Get-AzStorageAccount -Name   $storageaccountname  -ResourceGroupName  $resourcegroupname  -verbose
+     }
+   }
+   Catch
+   {
+         WRITE-DEBUG "Storage Account Aleady Exists, SKipping Creation of $storageAccount"
+   
+   } 
+        $StorageKey = (Get-AzStorageAccountKey -ResourceGroupName $resourcegroupname  –StorageAccountName $storageaccountname).value | select -first 1
+        $destContext = New-azStorageContext  –StorageAccountName $storageaccountname `
+                                        -StorageAccountKey $StorageKey
+
+
+             #Upload user.csv to storage account
+
+        try
+            {
+                  if (!(get-azstoragecontainer -Name $storagecontainer -Context $destContext))
+                     { 
+                         New-azStorageContainer $storagecontainer -Context $destContext
+                        }
+             }
+        catch
+             {
+                Write-Warning " $storagecontainer container already exists" 
+             }
+       
+
+         Set-azStorageBlobContent -Container $storagecontainer -Blob $resultsfilename  -File $resultsfilename -Context $destContext -force
+        
+ 
+ 
+ 
+>>>>>>> d52ce840e8be3c3b3ed9cc2c09f1fb868b28362c
 
 
 
